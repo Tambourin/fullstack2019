@@ -7,5 +7,13 @@ const blogSchema = mongoose.Schema({
   likes: Number,
 });
 
+blogSchema.set('toJSON', {
+  transform: (document, returnedDocument) => {
+    returnedDocument.kokeilu = "xxxxxx";
+    return returnedDocument;
+  },
+  virtuals: true
+});
+
 module.exports = mongoose.model('Blog', blogSchema);
 
