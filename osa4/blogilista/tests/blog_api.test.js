@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Blog = require('../models/blog');
+const User = require("../models/user");
 const supertest = require('supertest');
 const app = require('../app');
 
@@ -23,12 +24,20 @@ const listOfBlogs = [
     author: "Carla",
     url: "http://hammersandhighheels.blogspot.com",
     likes: 3,
-  },
-  
+  },  
 ];
 
+const testUser = {
+  username: "olli",
+  password: "koodi",
+  name: "Olavi Hartonen"
+}
+
 beforeEach(async () => {
+  await User.deleteMany({ });
   await Blog.deleteMany({ });
+  const user = new User(testUser);
+  await user.save();
   const promises = listOfBlogs
     .map(blog => new Blog(blog))
     .map(blogObject => blogObject.save());
@@ -46,7 +55,7 @@ describe('blog api get tests', () => {
   
   test('Response has right length', async () => {
     const response = await api.get('/api/blogs');
-    expect(response.body.length).toBe(3);
+    expect(response.body.length).toBe(listOfBlogs.length);
   });
   
   test('Response contains right title', async () => {
@@ -121,6 +130,23 @@ describe('Blog api post tests', () => {
       .post('/api/blogs')
       .send(testBlogNoUrl)
       .expect(400);
+  });
+
+  test("posted blog has user", async () => {
+    const response = await api.post("/api/blogs").send(testBlog);    
+    const body = response.body;
+    const blogs = await api.get("/api/blogs");
+    //console.log(blogs.body);
+    expect(response.body.user).toBeDefined();
+  });
+
+  test("posted blogs shows in user.blogs", async () => {
+    const response = await api.post("/api/blogs").send(testBlog);
+    const blog = response.body;
+    const user = await User.findOne({ username: "olli" });
+    const array = user.blogs.map(blogID => blogID.toString());
+    expect(array).toContainEqual(blog.id);
+    
   });
 });
 
