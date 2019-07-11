@@ -9,8 +9,8 @@ blogRouter.get("/", async (req, res, next) => {
   try {
     const blogs = await Blog.find({}).populate("user");
     if (blogs) {
-      console.log(blogs);
-      res.json(blogs).status(200);
+      //console.log(blogs);
+      return res.json(blogs).status(200);
     } else {
       res.status(404);
     }
@@ -58,12 +58,21 @@ blogRouter.post("/", async (req, res, next) => {
   }  
 });
 
-blogRouter.delete("/:id", async (req, res) => {
+blogRouter.delete("/:id", async (req, res, next) => {
+  const blogToBeDeleted = await Blog.findById(req.params.id);
+  //console.log("Blog to be deleted:", blogToBeDeleted.user);
   try {
-    const deletedBlog = await Blog.findByIdAndDelete(req.params.id);
+    const decodedToken = jsonWebToken.verify(req.token, process.env.SECRET);
+
+    if (blogToBeDeleted.user.toString() !== decodedToken.id) {
+      console.log("Unauthorized attemp to delete item");
+      return res.status(401).send({ error: "Unauthorized attemp to delete item"});
+    }
+    
+    const deletedBlog = await Blog.findByIdAndDelete(req.params.id);    
     res.status(200).json(deletedBlog);
-  } catch (error) {
-    next (error);
+  } catch(error) {
+    next(error);
   }
 });
 

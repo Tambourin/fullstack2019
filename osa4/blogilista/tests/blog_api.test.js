@@ -46,8 +46,10 @@ beforeEach(async () => {
   userToken = response.body.token;
   //console.log("Token: ", userToken);
   const promises = listOfBlogs
-    .map(blog => new Blog(blog))
-    .map(blogObject => blogObject.save());
+    .map(blog => api
+      .post("/api/blogs")
+      .set({ authorization: `bearer ${userToken}` })
+      .send(blog));
   await Promise.all(promises);
 });
 
@@ -187,14 +189,19 @@ describe("Delete blog", () => {
   test("delete has been accepted", async () => {
     const response = await api.get("/api/blogs");
     const blogs = response.body;
-    await api.delete(`/api/blogs/${blogs[0].id}`).expect(200);
+    await api
+      .delete(`/api/blogs/${blogs[0].id}`)
+      .set({ authorization: `bearer ${userToken}` })
+      .expect(200);
   });
 
   test("blog has been deleted", async () => {
     const response = await api.get("/api/blogs");
     const blogs = response.body;
-    console.log(blogs[0].id);
-    await api.delete(`/api/blogs/${blogs[0].id}`);
+    //console.log(blogs[0].id);
+    await api
+      .delete(`/api/blogs/${blogs[0].id}`)
+      .set({ authorization: `bearer ${userToken}` });;
     const allAfterDelete = await api.get("/api/blogs");
     expect(allAfterDelete.body.length).toBe(response.body.length - 1);
   });
@@ -202,9 +209,42 @@ describe("Delete blog", () => {
   test("right blog has been deleted", async () => {
     const response = await api.get("/api/blogs");
     const blogs = response.body;
-    const deletedResponse = await api.delete(`/api/blogs/${blogs[0]._id}`);
+    const deletedResponse = await api
+      .delete(`/api/blogs/${blogs[0]._id}`)
+      .set({ authorization: `bearer ${userToken}` });
     const deletedBlog = deletedResponse.body;
-    expect(deletedBlog).toEqual(blogs[0]);
+    expect(deletedBlog.id).toEqual(blogs[0].id);
+  });
+
+  test("delete without token returns error", async () => {
+    const getResponse = await api.get("/api/blogs");
+    const blogs = getResponse.body;
+    await api
+      .delete(`/api/blogs/${blogs[0]._id}`)
+      .expect(401);
+  });
+
+  test("delete with wrong token returns an error", async () => {
+    const secondUser = {
+      username: "vieras",
+      password: "kosssljs",
+      name: "Vieras mies"
+    };
+
+    const response = await api.post("/api/users").send(secondUser);
+    console.log('Response:', response.body);
+    const loginPostResponse = await api.post("/api/login").send({
+      username: secondUser.username,
+      password: secondUser.password
+    });
+    console.log('Returned token', loginPostResponse.body);
+    const getResponse = await api.get("/api/blogs");
+    const blogs = getResponse.body;
+    await api
+      .delete(`/api/blogs/${blogs[0]._id}`)
+      .set({ authorization: `bearer ${loginPostResponse.body.token}` })
+      .expect(401)
+      .expect({ error: "Unauthorized attemp to delete item" });
   });
 });
 

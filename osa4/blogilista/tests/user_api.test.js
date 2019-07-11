@@ -99,7 +99,7 @@ describe("user tests using http", () => {
       .post("/api/users")
       .send(testUserNoPassword)
       .expect(400)
-      .expect("password required");
+      .expect({ error: "password required" });
   });
 
   test("cannot save user with too short password", async () => {
@@ -107,7 +107,7 @@ describe("user tests using http", () => {
       .post("/api/users")
       .send(testUserPasswordShort)
       .expect(400)
-      .expect("password too short");
+      .expect({ error: "password too short" });
   });
 
   test("cannot save user with too short username", async () => {

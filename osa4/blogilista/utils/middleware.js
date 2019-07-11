@@ -8,6 +8,7 @@ const tokenExtractor = (request, response, next) => {
   if (!authorization) {
     //next({ error: "Token missing "});
     //next();
+    console.log("Token missing");
   } else if(authorization.toLowerCase().startsWith("bearer")) {
     request.token = authorization.substring(7);
   }

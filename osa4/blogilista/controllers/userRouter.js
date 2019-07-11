@@ -4,11 +4,11 @@ const User = require("../models/user");
 
 userRouter.post("/", async (request, response, next) => {
   const body = request.body;
-  console.log(body);
+  //console.log(body);
   if(!body.password) {
-    return response.status(400).send("password required");
+    return response.status(400).json({ error: "password required" });
   } else if(body.password.length < 4) {
-    return response.status(400).send("password too short");
+    return response.status(400).json({ error: "password too short" });
   }
 
   const user = new User({
@@ -21,8 +21,7 @@ userRouter.post("/", async (request, response, next) => {
   } catch (error) {
     console.log(error);
     next(error);
-  }
-  
+  }  
 });
 
 userRouter.get("/", async (request, response) => {
