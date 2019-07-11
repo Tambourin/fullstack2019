@@ -3,6 +3,17 @@ const requestLogger = (req, res, next) => {
   next();
 }
 
+const tokenExtractor = (request, response, next) => {
+  const authorization = request.get("authorization");
+  if (!authorization) {
+    //next({ error: "Token missing "});
+    //next();
+  } else if(authorization.toLowerCase().startsWith("bearer")) {
+    request.token = authorization.substring(7);
+  }
+  next();
+}
+
 const errorHandler = (error, request, response, next) => {
   if(error.name === "ValidationError") {
     console.log(error);
@@ -20,5 +31,6 @@ const errorHandler = (error, request, response, next) => {
 
 module.exports = {
   requestLogger,
+  tokenExtractor,
   errorHandler
 }

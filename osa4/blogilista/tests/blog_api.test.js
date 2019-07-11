@@ -39,7 +39,7 @@ const testUser = {
 beforeEach(async () => {
   await User.deleteMany({});
   await Blog.deleteMany({});
-  const postedUser = await api.post("/api/users").send(testUser);
+  const user = await api.post("/api/users").send(testUser);
   const response = await api
     .post("/api/login")
     .send({ username: testUser.username, password: testUser.password });
@@ -108,20 +108,29 @@ describe("Blog api post tests", () => {
   };
 
   test("Posting a blog increases the number of blogs", async () => {
-    await api.post("/api/blogs").send(testBlog);
+    await api
+      .post("/api/blogs")
+      .set({ authorization: `bearer ${userToken}` })
+      .send(testBlog);
     const response = await api.get("/api/blogs");
     expect(response.body.length).toBe(listOfBlogs.length + 1);
   });
 
   test("Posted blog is found", async () => {
-    await api.post("/api/blogs").send(testBlog);
+    await api
+      .post("/api/blogs")
+      .set({ authorization: `bearer ${userToken}` })
+      .send(testBlog);
     const response = await api.get("/api/blogs");
     const titles = response.body.map(blog => blog.title);
     expect(titles).toContain("this is title");
   });
 
   test("posted blog with no likes gets likes 0", async () => {
-    const response = await api.post("/api/blogs").send(testBlogNoLikes);
+    const response = await api
+      .post("/api/blogs")
+      .set({ authorization: `bearer ${userToken}` })
+      .send(testBlogNoLikes);
     const blogResponse = await api.get(`/api/blogs/${response.body._id}`);
     console.log(blogResponse.body);
     expect(blogResponse.body.likes).toBe(0);
@@ -130,16 +139,21 @@ describe("Blog api post tests", () => {
   test("posted blog should have a title and url, else error", async () => {
     await api
       .post("/api/blogs")
+      .set({ authorization: `bearer ${userToken}` })
       .send(testBlogNoTitle)
       .expect(400);
     await api
       .post("/api/blogs")
+      .set({ authorization: `bearer ${userToken}` })
       .send(testBlogNoUrl)
       .expect(400);
   });
 
   test("posted blog has user", async () => {
-    const response = await api.post("/api/blogs").send(testBlog);
+    const response = await api
+      .post("/api/blogs")
+      .set({ authorization: `bearer ${userToken}` })
+      .send(testBlog);
     const body = response.body;
     const blogs = await api.get("/api/blogs");
     expect(response.body.user).toBeDefined();
@@ -157,12 +171,13 @@ describe("Blog api post tests", () => {
   });
 
   test("Posted blog has right user", async () => {
+    //console.log('UserToken:', userToken);
     const response = await api
       .post("/api/blogs")
       .set({ authorization: `bearer ${userToken}` })
       .send(testBlog);
-    const user = await User.findOne({ username: testUser.username });
     const body = response.body;
+    const user = await User.findOne({ username: testUser.username });
     expect(body.user).toBe(user.id);
   });
 });
