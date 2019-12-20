@@ -1,0 +1,25 @@
+{
+  "name": "library",
+  "version": "0.0.1",
+  "description": "",
+  "main": "library-backend.js",
+  "scripts": {
+    "start": "npx node library-backend.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "nodemon library-backend.js"
+  },
+  "author": "Olavi Hartonen",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server": "^2.9.7",
+    "dotenv": "^8.2.0",
+    "graphql": "^14.5.8",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.8.1",
+    "mongoose-unique-validator": "^2.0.3",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.4"
+  }
+}

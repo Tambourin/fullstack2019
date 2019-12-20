@@ -6,9 +6,9 @@ const Names = ({ persons, deletePerson }) => {
   
 
   const personNamesAndNumbers = persons.map(person => (
-    <p key={person.id}>
+    <p key={person._id}>
       {person.name} {person.number}
-      <span>  </span>
+      <span></span>
       <button onClick={deletePerson(person)}>Poista</button>
     </p>
   ));
@@ -109,7 +109,7 @@ const App = () => {
         const updatedP = { ...p, number: newNumber }
         personService.update(updatedP).then(response => {
           setPersons(persons.map(person => 
-            person.id !== response.data.id ? person : response.data));
+            person._id !== response.data._id ? person : response.data));
         }).catch (error => {
           setErrorMessage("Päivittäminen ei onnistunut");
           setTimeout(() => {
@@ -122,7 +122,6 @@ const App = () => {
       
     } else {
       const newPerson = {
-        id: persons.length + 1,
         name: newName,
         number: newNumber
       };
@@ -131,10 +130,13 @@ const App = () => {
         setPersons(persons.concat(addedPerson));
         setMessage("Uusi yhteystieto luotu.")    
         setTimeout(() => {
-          setMessage(null)
+          setErrorMessage(null)
         }, 5000)    
         setNewName("");
         setNewNumber("");
+      }).catch(error => {
+        setErrorMessage(error.response.data.error);
+        //console.log(error.response.data.error);
       });
     }    
   };
@@ -144,8 +146,10 @@ const App = () => {
   const deletePerson = (person) => {
     return () => {
       if(window.confirm(`Haluatko varmasti poistaa hekilön ${person.name}`)) {
-        personService.deleteById(person.id).then((response) => {
-          setPersons(persons.filter(p => p.id !== person.id));
+        console.log('personID', person._id);
+        personService.deleteById(person._id).then((response) => {
+          setPersons(persons.filter(p => p._id !== person._id));
+          console.log('response:', response);
         }).catch(error => {
           setErrorMessage("Poistaminen ei onnistunut");
           setTimeout(() => {
@@ -162,6 +166,7 @@ const App = () => {
   useEffect(() => {
     personService.getAll().then(data => {
       setPersons(data);
+      console.log('Data haettu', data);
     });
   }, []);
 

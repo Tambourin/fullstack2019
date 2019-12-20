@@ -19,12 +19,13 @@ const userSchema = mongoose.Schema({
 });
 
 
-//userSchema.options.toJSON = {
-  //transform: (document, returnedDocument) => {
-    //delete returnedDocument.passwordHash;
-    //return returnedDocument;
-  //}
-//}
+userSchema.options.toJSON = {
+  transform: (document, returnedDocument) => {
+    delete returnedDocument.passwordHash;
+    return returnedDocument;
+  },
+  virtuals: true
+}
 
 userSchema.plugin(uniqueValidator);
 

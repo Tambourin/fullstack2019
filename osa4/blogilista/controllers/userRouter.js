@@ -28,7 +28,7 @@ userRouter.get("/", async (request, response) => {
   try {
     const users = await User.find({}).populate("blogs");
     //users.forEach((user) => { delete user.passwordHash });
-    response.json(users.map(({ passwordHash, ...items }) => items));
+    response.status(200).json(users);
   } catch(exception) {
     console.log("could not fetch user data");
   }

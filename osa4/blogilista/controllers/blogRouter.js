@@ -9,7 +9,6 @@ blogRouter.get("/", async (req, res, next) => {
   try {
     const blogs = await Blog.find({}).populate("user");
     if (blogs) {
-      //console.log(blogs);
       return res.json(blogs).status(200);
     } else {
       res.status(404);
@@ -21,7 +20,7 @@ blogRouter.get("/", async (req, res, next) => {
 
 blogRouter.get("/:id", async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    const blog = await Blog.findById(req.params.id).populate("user");
     res.json(blog).status(200);
   } catch (exception) {
     console.log("Tietyn blogin haku ideellä ei onnistunut");
@@ -42,6 +41,7 @@ blogRouter.post("/", async (req, res, next) => {
     const newBlog = new Blog({
       ...req.body,
       likes: req.body.likes ? req.body.likes : 0,
+      comments: [],
       user: user.id
     });
 
@@ -80,11 +80,32 @@ blogRouter.put("/:id", async (req, res) => {
   try {
     const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, req.body, {
       new: true
-    });
+    }).populate("user");
     res.status(200).json(updatedBlog);
   } catch {
     res.status(500).send("not valid id");
   }
+});
+
+//blogRouter.get("/:id/comments", async (req, res) => {
+//  const response = await Blog.find({}) 
+//});
+
+blogRouter.post("/:id/comments", async (req, res) => {
+  try{
+    const blog = await Blog.findById(req.params.id);
+    const blogWithNewComment = {
+      ...blog._doc,
+      comments: [
+       ...blog._doc.comments,
+        req.body.comment
+      ]
+    };
+    const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, blogWithNewComment, { new: true });
+    res.status(200).json(updatedBlog);
+  } catch {
+    res.status(500).send("error: There was an error while adding a comment.")
+  } 
 });
 
 module.exports = blogRouter;
